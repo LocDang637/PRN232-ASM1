@@ -1,0 +1,155 @@
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+@model IPagedList<SmokeQuit.Repositories.DuongLNT.Models.LeaderboardsDuongLnt>
+@{
+	ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+	<a asp-action="Create">Create New</a>
+</p>
+
+<form asp-action="Index">
+	<div class="row">
+		<div class="col-md-3">
+			<div class="form-group">
+				<label class="control-label">Note</label>
+				<input type="text" id="note" name="note" class="form-control" />
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="form-group">
+				<label class="control-label">Money</label>
+				<input type="text" id="money" name="money" class="form-control" />
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="form-group">
+				<label class="control-label">Reason</label>
+				<input type="text" id="reason" name="reason" class="form-control" />
+			</div>
+		</div>
+		<div class="col-md-3 mt-4">
+			<div class="form-group">
+				<input type="submit" value="Search" class="btn btn-success" />
+				<a asp-action="Create" class="btn btn-primary">Create</a>
+			</div>
+		</div>
+	</div>
+</form>
+
+<table class="table">
+	<thead>
+		<tr>
+			<th>
+				@Html.DisplayNameFor(model => model[0].DaySmokeFree)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model[0].MoneySave)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model[0].RankPosition)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model[0].TotalAchievements)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model[0].ProgressScore)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model[0].Note)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model[0].StreakCount)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model[0].CommunityContribution)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model[0].IsTopRanked)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model[0].LastUpdate)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model[0].CreatedTime)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model[0].Plan)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model[0].User)
+			</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model)
+		{
+			<tr>
+				<td>
+					@Html.DisplayFor(modelItem => item.DaySmokeFree)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.MoneySave)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.RankPosition)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.TotalAchievements)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.ProgressScore)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.Note)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.StreakCount)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.CommunityContribution)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.IsTopRanked)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.LastUpdate)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.CreatedTime)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.Plan.Reason)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.User.UserName)
+				</td>
+				<td>
+					<a asp-action="Edit" asp-route-id="@item.LeaderboardsDuongLntid">Edit</a> |
+					<a asp-action="Details" asp-route-id="@item.LeaderboardsDuongLntid">Details</a> |
+					<a asp-action="Delete" asp-route-id="@item.LeaderboardsDuongLntid">Delete</a>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>
+
+<!-- Hiển thị phân trang -->
+@Html.PagedListPager(
+				Model,
+				page => Url.Action("Index", "QuitPlansAnhDtns", new { pageNumber = page }),
+				new PagedListRenderOptions
+			{
+				DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+				DisplayLinkToLastPage = PagedListDisplayMode.Always,
+				MaximumPageNumbersToDisplay = 5,
+				ContainerDivClasses = new[] { "d-flex", "justify-content-center" },
+				PageClasses = new[] { "page-link" },
+				ActiveLiElementClass = "active",
+				LiElementClasses = new[] { "page-item" }
+			}
+			)

@@ -1,0 +1,6 @@
+@SmokeQuit.APIServices.BE.LocDPX_HostAddress = http://localhost:5161
+
+GET {{SmokeQuit.APIServices.BE.LocDPX_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
