@@ -2,6 +2,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace SmokeQuit.Repositories.LocDPX.Models;
 
@@ -9,18 +10,27 @@ public partial class ChatsLocDpx
 {
     public int ChatsLocDpxid { get; set; }
 
+    [Required(ErrorMessage = "User ID is required")]
     public int UserId { get; set; }
 
+    [Required(ErrorMessage = "Coach ID is required")]
     public int CoachId { get; set; }
 
+    [Required(ErrorMessage = "Message is required")]
+    [StringLength(1000, ErrorMessage = "Message cannot exceed 1000 characters")]
     public string Message { get; set; }
 
+    [Required(ErrorMessage = "SentBy is required")]
+    [StringLength(10, ErrorMessage = "SentBy cannot exceed 10 characters")]
     public string SentBy { get; set; }
 
+    [Required(ErrorMessage = "Message Type is required")]
+    [StringLength(10, ErrorMessage = "Message Type cannot exceed 10 characters")]
     public string MessageType { get; set; }
 
     public bool IsRead { get; set; }
 
+    [StringLength(255, ErrorMessage = "Attachment URL cannot exceed 255 characters")]
     public string AttachmentUrl { get; set; }
 
     public DateTime? ResponseTime { get; set; }

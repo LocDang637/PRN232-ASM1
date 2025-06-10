@@ -1,57 +1,88 @@
-﻿using FirebaseAdmin;
-using Google.Apis.Auth.OAuth2;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using SmokeQuit.Repositories.LocDPX;
+using Microsoft.OpenApi.Models;
 using SmokeQuit.Services.LocDPX;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Read Firebase configuration from firebaseconfig.json
-FirebaseApp.Create(new AppOptions
-{
-    Credential = GoogleCredential.FromFile("firebaseconfig.json")
-});
-
-// ✅ JWT Key
-var jwtKey = builder.Configuration["JwtSettings:Key"];
-var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-
-// ✅ Add JWT Auth
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-
-            ValidateAudience = true,
-            ValidAudience = builder.Configuration["JwtSettings:Audience"],
-
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = key,
-
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-    });
-
 // Add services to the container.
+builder.Services.AddScoped<IChatsLocDpxService, ChatsLocDpxService>();
+builder.Services.AddScoped<ICoachLocDpxService, CoachLocDpxService>();
+builder.Services.AddScoped<SystemUserAccountService>();
 
 builder.Services.AddControllers()
     .AddNewtonsoftJson(x =>
         x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        builder =>
+        {
+            builder.WithOrigins("https://localhost:7221")
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
 
-builder.Services.AddScoped<IChatsLocDpxService, ChatsLocDpxService>();
-builder.Services.AddScoped<CoachLocDpxService>();
-builder.Services.AddScoped<SystemUserAccountService>();
+// JWT Configuration
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+            ValidAudience = builder.Configuration["JwtSettings:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"])),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+// Swagger with JWT
+builder.Services.AddSwaggerGen(option =>
+{
+    option.DescribeAllParametersInCamelCase();
+    option.ResolveConflictingActions(conf => conf.First());
+    option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter a valid token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+    option.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type=ReferenceType.SecurityScheme,
+                    Id="Bearer"
+                }
+            },
+            new string[]{}
+        }
+    });
+});
+
+// Ignore cycles when converting json objects
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
+});
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -63,9 +94,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
