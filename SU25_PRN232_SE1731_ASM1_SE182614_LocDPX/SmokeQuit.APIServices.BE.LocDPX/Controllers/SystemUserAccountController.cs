@@ -71,5 +71,17 @@ namespace SmokeQuit.APIServices.BE.LocDPX.Controllers
         }
 
         public sealed record LoginRequest(string UserName, string Password);
+
+        [HttpGet("test-no-auth")]
+        [AllowAnonymous] // No authentication required
+        public IActionResult TestNoAuth()
+        {
+            return Ok(new
+            {
+                Status = "API is working",
+                Time = DateTime.Now,
+                Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+            });
+        }
     }
 }

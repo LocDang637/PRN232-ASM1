@@ -21,7 +21,7 @@ namespace SmokeQuit.APIServices.BE.LocDPX.Controllers
 
         // GET: api/ChatsLocDpx
         [HttpGet]
-        [Authorize(Roles = "1,2")]
+        [Authorize]
         public async Task<IActionResult> Get()
         {
             var chats = await _service.GetAllAsync();
