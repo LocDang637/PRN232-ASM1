@@ -1,0 +1,135 @@
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+@model IPagedList<SmokeQuit.Repositories.LocDPX.Models.ChatsLocDpx>
+
+@{
+    ViewData["Title"] = "Chat Messages";
+}
+
+<h1>Chat Messages</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Message</a>
+</p>
+
+<form asp-action="Index" method="get">
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="control-label">Message Content</label>
+                <input type="text" id="message" name="message" class="form-control" placeholder="Search by message..." />
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="control-label">Message Type</label>
+                <select id="messageType" name="messageType" class="form-control">
+                    <option value="">All Types</option>
+                    <option value="text">Text</option>
+                    <option value="image">Image</option>
+                    <option value="file">File</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="control-label">Sent By</label>
+                <select id="sentBy" name="sentBy" class="form-control">
+                    <option value="">All</option>
+                    <option value="user">User</option>
+                    <option value="coach">Coach</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3 mt-4">
+            <div class="form-group">
+                <input type="submit" value="Search" class="btn btn-success" />
+                <a asp-action="Index" class="btn btn-secondary">Clear</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Message</th>
+                <th>Type</th>
+                <th>Sent By</th>
+                <th>User</th>
+                <th>Coach</th>
+                <th>Read Status</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @if (item.Message.Length > 50)
+                        {
+                            @($"{item.Message.Substring(0, 50)}...")
+                        }
+                        else
+                        {
+                            @item.Message
+                        }
+                    </td>
+                    <td>
+                        <span class="badge bg-info">@item.MessageType</span>
+                    </td>
+                    <td>
+                        <span class="badge @(item.SentBy == "user" ? "bg-primary" : "bg-secondary")">
+                            @item.SentBy
+                        </span>
+                    </td>
+                    <td>@item.User?.UserName</td>
+                    <td>@item.Coach?.FullName</td>
+                    <td>
+                        @if (item.IsRead)
+                        {
+                            <span class="badge bg-success">Read</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning">Unread</span>
+                        }
+                    </td>
+                    <td>@item.CreatedAt?.ToString("MM/dd/yyyy HH:mm")</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.ChatsLocDpxid" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="Details" asp-route-id="@item.ChatsLocDpxid" class="btn btn-sm btn-info">Details</a>
+                        <a asp-action="Delete" asp-route-id="@item.ChatsLocDpxid" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info text-center">
+        <h4>No messages found</h4>
+        <p>There are no chat messages matching your search criteria.</p>
+    </div>
+}
+
+<!-- Pagination -->
+@Html.PagedListPager(
+Model,
+page => Url.Action("Index", "ChatsLocDpx", new { pageNumber = page }),
+    new PagedListRenderOptions
+    {
+        DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+        DisplayLinkToLastPage = PagedListDisplayMode.Always,
+        MaximumPageNumbersToDisplay = 5,
+        ContainerDivClasses = new[] { "d-flex", "justify-content-center" },
+        PageClasses = new[] { "page-link" },
+        ActiveLiElementClass = "active",
+        LiElementClasses = new[] { "page-item" }
+    }
+)

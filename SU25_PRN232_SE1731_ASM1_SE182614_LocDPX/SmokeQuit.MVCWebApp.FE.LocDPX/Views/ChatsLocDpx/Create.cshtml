@@ -1,0 +1,81 @@
+﻿@model SmokeQuit.Repositories.LocDPX.Models.ChatsLocDpx
+
+@{
+    ViewData["Title"] = "Create Chat Message";
+}
+
+<h1>Create Chat Message</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="UserId" class="control-label">User</label>
+                <select asp-for="UserId" class="form-control" asp-items="ViewBag.UserId">
+                    <option value="">Select User</option>
+                </select>
+                <span asp-validation-for="UserId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="CoachId" class="control-label">Coach</label>
+                <select asp-for="CoachId" class="form-control" asp-items="ViewBag.CoachId">
+                    <option value="">Select Coach</option>
+                </select>
+                <span asp-validation-for="CoachId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Message" class="control-label">Message</label>
+                <textarea asp-for="Message" class="form-control" rows="4" placeholder="Enter your message..."></textarea>
+                <span asp-validation-for="Message" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="MessageType" class="control-label">Message Type</label>
+                <select asp-for="MessageType" class="form-control">
+                    <option value="">Select Type</option>
+                    <option value="text">Text</option>
+                    <option value="image">Image</option>
+                    <option value="file">File</option>
+                </select>
+                <span asp-validation-for="MessageType" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="SentBy" class="control-label">Sent By</label>
+                <select asp-for="SentBy" class="form-control">
+                    <option value="">Select Sender</option>
+                    <option value="user">User</option>
+                    <option value="coach">Coach</option>
+                </select>
+                <span asp-validation-for="SentBy" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="AttachmentUrl" class="control-label">Attachment URL</label>
+                <input asp-for="AttachmentUrl" class="form-control" placeholder="Enter attachment URL (optional)" />
+                <span asp-validation-for="AttachmentUrl" class="text-danger"></span>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="IsRead" class="form-check-input" type="checkbox" />
+                <label asp-for="IsRead" class="form-check-label">Mark as Read</label>
+            </div>
+
+            <div class="form-group mb-3">
+                <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

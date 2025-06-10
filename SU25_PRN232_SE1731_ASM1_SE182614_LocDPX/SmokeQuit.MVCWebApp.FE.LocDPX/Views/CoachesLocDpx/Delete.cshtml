@@ -1,0 +1,34 @@
+﻿@model SmokeQuit.Repositories.LocDPX.Models.CoachesLocDpx
+
+@{
+    ViewData["Title"] = "Delete Coach";
+}
+
+<h1>Delete Coach</h1>
+
+<h3 class="text-danger">Are you sure you want to delete this coach?</h3>
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">Full Name</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(model => model.FullName)</dd>
+
+        <dt class="col-sm-3">Email</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(model => model.Email)</dd>
+
+        <dt class="col-sm-3">Phone Number</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(model => model.PhoneNumber)</dd>
+
+        <dt class="col-sm-3">Bio</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(model => model.Bio)</dd>
+
+        <dt class="col-sm-3">Created At</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(model => model.CreatedAt)</dd>
+    </dl>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="CoachesLocDpxid" />
+        <input type="submit" value="Delete" class="btn btn-danger" />
+        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </form>
+</div>

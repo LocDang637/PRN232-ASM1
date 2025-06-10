@@ -3,6 +3,135 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Welcome to SmokeQuit Chat System</h1>
+    <p class="lead">Manage conversations between users and coaches to support smoking cessation journeys.</p>
 </div>
+
+@if (User.Identity.IsAuthenticated)
+{
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-comments"></i> Chat Management
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">View, create, and manage chat messages between users and coaches.</p>
+                    <a asp-controller="ChatsLocDpx" asp-action="Index" class="btn btn-primary">
+                        <i class="fas fa-list"></i> View Messages
+                    </a>
+                    <a asp-controller="ChatsLocDpx" asp-action="Create" class="btn btn-outline-primary">
+                        <i class="fas fa-plus"></i> New Message
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users"></i> Coach Management
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Manage coach profiles and information for the support system.</p>
+                    <a asp-controller="CoachesLocDpx" asp-action="Index" class="btn btn-success">
+                        <i class="fas fa-list"></i> View Coaches
+                    </a>
+                    <a asp-controller="CoachesLocDpx" asp-action="Create" class="btn btn-outline-success">
+                        <i class="fas fa-user-plus"></i> Add Coach
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line"></i> Quick Stats
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="border-end">
+                                <h3 class="text-primary">
+                                    <i class="fas fa-comments"></i>
+                                    <span id="totalMessages">Loading...</span>
+                                </h3>
+                                <p class="text-muted">Total Messages</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border-end">
+                                <h3 class="text-success">
+                                    <i class="fas fa-users"></i>
+                                    <span id="totalCoaches">Loading...</span>
+                                </h3>
+                                <p class="text-muted">Active Coaches</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h3 class="text-warning">
+                                <i class="fas fa-envelope"></i>
+                                <span id="unreadMessages">Loading...</span>
+                            </h3>
+                            <p class="text-muted">Unread Messages</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row mt-5">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Please Login to Access the System</h5>
+                    <p class="card-text">You need to authenticate to access chat management features.</p>
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg">
+                        <i class="fas fa-sign-in-alt"></i> Login Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @if (User.Identity.IsAuthenticated)
+    {
+        <script>
+            // Load quick stats (optional - you can implement API endpoints for these)
+            $(document).ready(function() {
+                // Placeholder for loading stats
+                $('#totalMessages').text('--');
+                $('#totalCoaches').text('--');
+                $('#unreadMessages').text('--');
+
+                // You can implement AJAX calls here to load actual stats
+                // loadStats();
+            });
+
+            function loadStats() {
+                // Example implementation:
+                // $.get('/api/stats/messages', function(data) {
+                //     $('#totalMessages').text(data.total);
+                //     $('#unreadMessages').text(data.unread);
+                // });
+                //
+                // $.get('/api/stats/coaches', function(data) {
+                //     $('#totalCoaches').text(data.total);
+                // });
+            }
+        </script>
+    }
+}

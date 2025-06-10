@@ -1,0 +1,257 @@
+﻿@model SmokeQuit.Repositories.LocDPX.Models.ChatsLocDpx
+
+@{
+    ViewData["Title"] = "Chat Message Details";
+}
+
+<h1>Chat Message Details</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">Message</dt>
+        <dd class="col-sm-9">
+            <div class="card">
+                <div class="card-body">
+                    @Html.DisplayFor(model => model.Message)
+                </div>
+            </div>
+        </dd>
+
+        <dt class="col-sm-3">Message Type</dt>
+        <dd class="col-sm-9">
+            <span class="badge bg-info">@Html.DisplayFor(model => model.MessageType)</span>
+        </dd>
+
+        <dt class="col-sm-3">Sent By</dt>
+        <dd class="col-sm-9">
+            <span class="badge @(Model.SentBy == "user" ? "bg-primary" : "bg-secondary")">
+                @Html.DisplayFor(model => model.SentBy)
+            </span>
+        </dd>
+
+        <dt class="col-sm-3">User</dt>
+        <dd class="col-sm-9">
+            @if (Model.User != null)
+            {
+                <i class="fas fa-user text-primary"></i> 
+                @Html.DisplayFor(model => model.User.UserName)
+            }
+            else
+            {
+                <span class="text-muted">No user assigned</span>
+            }
+        </dd>
+
+        <dt class="col-sm-3">Coach</dt>
+        <dd class="col-sm-9">
+            @if (Model.Coach != null)
+            {
+                <i class="fas fa-user-tie text-success"></i> 
+                @Html.DisplayFor(model => model.Coach.FullName)
+                @if (!string.IsNullOrEmpty(Model.Coach.Email))
+                {
+                    <br />
+            
+                    <small class="text-muted">
+                        <i class="fas fa-envelope"></i>
+                        <a href="mailto:@Model.Coach.Email">@Model.Coach.Email</a>
+                    </small>
+                }
+            }
+            else
+            {
+                <span class="text-muted">No coach assigned</span>
+            }
+        </dd>
+
+        <dt class="col-sm-3">Read Status</dt>
+        <dd class="col-sm-9">
+            @if (Model.IsRead)
+            {
+                <span class="badge bg-success">
+                    <i class="fas fa-check-circle"></i> Read
+                </span>
+            }
+            else
+            {
+                <span class="badge bg-warning">
+                    <i class="fas fa-envelope"></i> Unread
+                </span>
+            }
+        </dd>
+
+        @if (!string.IsNullOrEmpty(Model.AttachmentUrl))
+        {
+            <dt class="col-sm-3">Attachment</dt>
+            <dd class="col-sm-9">
+                <div class="card border-info">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-paperclip text-info"></i> Attachment Available
+                        </h6>
+                        <a href="@Model.AttachmentUrl" target="_blank" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-external-link-alt"></i> View Attachment
+                        </a>
+                        <small class="d-block mt-2 text-muted">
+                            URL: @Model.AttachmentUrl
+                        </small>
+                    </div>
+                </div>
+            </dd>
+        }
+
+        <dt class="col-sm-3">Response Time</dt>
+        <dd class="col-sm-9">
+            @if (Model.ResponseTime.HasValue)
+            {
+                <i class="fas fa-clock text-info"></i>
+                @Html.DisplayFor(model => model.ResponseTime)
+                <small class="text-muted d-block">
+                    @if (Model.CreatedAt.HasValue && Model.ResponseTime.HasValue)
+                    {
+                        var responseDelay = Model.ResponseTime.Value - Model.CreatedAt.Value;
+                        if (responseDelay.TotalMinutes < 60)
+                        {
+                            <span class="text-success">Quick response (@((int)responseDelay.TotalMinutes) minutes)</span>
+                        }
+                        else if (responseDelay.TotalHours < 24)
+                        {
+                            <span class="text-warning">Same day response (@((int)responseDelay.TotalHours) hours)</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger">Delayed response (@((int)responseDelay.TotalDays) days)</span>
+                        }
+                    }
+                </small>
+            }
+            else
+            {
+                <span class="text-muted">
+                    <i class="fas fa-hourglass-half"></i> No response yet
+                </span>
+            }
+        </dd>
+
+        <dt class="col-sm-3">Created At</dt>
+        <dd class="col-sm-9">
+            <i class="fas fa-calendar-alt text-primary"></i>
+            @Html.DisplayFor(model => model.CreatedAt)
+            @if (Model.CreatedAt.HasValue)
+            {
+                <small class="text-muted d-block">
+                    @{
+                        var timeAgo = DateTime.Now - Model.CreatedAt.Value;
+                        string timeAgoText = "";
+                        if (timeAgo.TotalMinutes < 60)
+                        {
+                            timeAgoText = $"{(int)timeAgo.TotalMinutes} minutes ago";
+                        }
+                        else if (timeAgo.TotalHours < 24)
+                        {
+                            timeAgoText = $"{(int)timeAgo.TotalHours} hours ago";
+                        }
+                        else
+                        {
+                            timeAgoText = $"{(int)timeAgo.TotalDays} days ago";
+                        }
+                    }
+                    @timeAgoText
+                </small>
+            }
+        </dd>
+
+        <dt class="col-sm-3">Message ID</dt>
+        <dd class="col-sm-9">
+            <span class="badge bg-light text-dark">
+                <i class="fas fa-hashtag"></i> @Model.ChatsLocDpxid
+            </span>
+        </dd>
+    </dl>
+</div>
+
+<!-- Action Buttons -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="btn-group" role="group" aria-label="Message actions">
+            <a asp-action="Edit" asp-route-id="@Model?.ChatsLocDpxid" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Edit Message
+            </a>
+            <a asp-action="Delete" asp-route-id="@Model?.ChatsLocDpxid" class="btn btn-danger">
+                <i class="fas fa-trash-alt"></i> Delete Message
+            </a>
+        </div>
+        <a asp-action="Index" class="btn btn-secondary ms-3">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<!-- Related Actions Card -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-light">
+            <div class="card-header bg-light">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-tools"></i> Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Message Management</h6>
+                        <div class="btn-group-vertical d-grid gap-2">
+                            <a asp-action="Create" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-plus"></i> Create New Message
+                            </a>
+                            @if (Model.User != null)
+                            {
+                                <a asp-action="Index" asp-route-userId="@Model.UserId" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-user"></i> View All Messages from @Model.User.UserName
+                                </a>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-success">Coach Management</h6>
+                        <div class="btn-group-vertical d-grid gap-2">
+                            @if (Model.Coach != null)
+                            {
+                                <a asp-controller="CoachesLocDpx" asp-action="Details" asp-route-id="@Model.CoachId" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-user-tie"></i> View Coach Profile
+                                </a>
+                                <a asp-action="Index" asp-route-coachId="@Model.CoachId" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-comments"></i> View All Messages from Coach
+                                </a>
+                            }
+                            <a asp-controller="CoachesLocDpx" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-users"></i> All Coaches
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Add tooltips to badges and icons
+            $('[data-bs-toggle="tooltip"]').tooltip();
+
+            // Auto-refresh unread status every 30 seconds (optional)
+            @if (!Model.IsRead)
+            {
+                    <text>
+                    setInterval(function() {
+                        // You can implement AJAX call here to check if message was read
+                        // and update the UI accordingly
+                    }, 30000);
+                    </text>
+            }
+        });
+    </script>
+}
