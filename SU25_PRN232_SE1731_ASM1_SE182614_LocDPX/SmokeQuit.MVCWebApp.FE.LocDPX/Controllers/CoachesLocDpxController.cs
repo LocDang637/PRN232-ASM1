@@ -215,5 +215,67 @@ namespace SmokeQuit.MVCWebApp.FE.LocDPX.Controllers
             if (coach == null) return NotFound();
             return View(coach);
         }
+
+
+        [AllowAnonymous]
+        public async Task<IActionResult> PublicIndex(string? fullName, string? email, int? pageNumber)
+        {
+            var search = new SearchCoachRequest
+            {
+                FullName = fullName ?? "",
+                Email = email ?? "",
+                CurrentPage = pageNumber ?? 1,
+                PageSize = 10
+            };
+
+            using (var httpClient = new HttpClient())
+            {
+                // No token needed for public access
+                using (var response = await httpClient.PostAsJsonAsync(APIEndPoint + "CoachLocDpx/Search", search))
+                {
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var content = await response.Content.ReadAsStringAsync();
+                        var result = JsonConvert.DeserializeObject<PaginationResult<List<CoachesLocDpx>>>(content);
+
+                        if (result != null)
+                        {
+                            var pagedList = new StaticPagedList<CoachesLocDpx>(
+                                result.Items,
+                                result.CurrentPage,
+                                result.PageSize,
+                                result.TotalItems
+                            );
+                            return View(pagedList);
+                        }
+                    }
+                }
+            }
+
+            return View(new List<CoachesLocDpx>().ToPagedList(search.CurrentPage, search.PageSize));
+        }
+
+        // Public Details - No authentication required  
+        [AllowAnonymous]
+        public async Task<IActionResult> PublicDetails(int? id)
+        {
+            if (id == null) return NotFound();
+
+            CoachesLocDpx coach = null;
+
+            using (var httpClient = new HttpClient())
+            {
+                // No token needed for public access
+                var response = await httpClient.GetAsync(APIEndPoint + "CoachLocDpx/" + id);
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    coach = JsonConvert.DeserializeObject<CoachesLocDpx>(content);
+                }
+            }
+
+            if (coach == null) return NotFound();
+            return View(coach);
+        }
     }
 }

@@ -9,6 +9,7 @@ namespace SmokeQuit.APIServices.BE.LocDPX.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [AllowAnonymous]
     public class CoachLocDpxController : ControllerBase
     {
         private readonly ICoachLocDpxService _service;
@@ -20,7 +21,7 @@ namespace SmokeQuit.APIServices.BE.LocDPX.Controllers
 
         // GET: api/CoachLocDpx
         [HttpGet]
-        [Authorize(Roles = "1,2")]
+       
         public async Task<IActionResult> Get()
         {
             var coaches = await _service.GetAllAsync();
@@ -29,7 +30,7 @@ namespace SmokeQuit.APIServices.BE.LocDPX.Controllers
 
         // GET: api/CoachLocDpx/5
         [HttpGet("{id}")]
-        [Authorize(Roles = "1,2")]
+       
         public async Task<IActionResult> Get(int id)
         {
             var coach = await _service.GetByIdAsync(id);
@@ -40,7 +41,7 @@ namespace SmokeQuit.APIServices.BE.LocDPX.Controllers
 
         // POST: api/CoachLocDpx
         [HttpPost]
-        [Authorize(Roles = "1,2")]
+    
         public async Task<IActionResult> Create([FromBody] CoachesLocDpx coach)
         {
             if (!ModelState.IsValid)
@@ -56,7 +57,7 @@ namespace SmokeQuit.APIServices.BE.LocDPX.Controllers
 
         // PUT: api/CoachLocDpx/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "1,2")]
+    
         public async Task<IActionResult> Update(int id, [FromBody] CoachesLocDpx coach)
         {
             if (!ModelState.IsValid)
@@ -75,7 +76,7 @@ namespace SmokeQuit.APIServices.BE.LocDPX.Controllers
 
         // DELETE: api/CoachLocDpx/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "1")]
+    
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _service.DeleteAsync(id);
@@ -86,7 +87,7 @@ namespace SmokeQuit.APIServices.BE.LocDPX.Controllers
 
         // POST: api/CoachLocDpx/search
         [HttpPost("Search")]
-        [Authorize(Roles = "1,2")]
+    
         public async Task<IActionResult> Search([FromBody] SearchCoachRequest request)
         {
             var result = await _service.SearchWithPagingAsync(
@@ -100,7 +101,7 @@ namespace SmokeQuit.APIServices.BE.LocDPX.Controllers
 
         // GET: api/CoachLocDpx/paging/{currentPage}/{pageSize}
         [HttpGet("{currentPage}/{pageSize}")]
-        [Authorize(Roles = "1,2")]
+     
         public async Task<IActionResult> GetWithPaging(int currentPage, int pageSize)
         {
             var result = await _service.GetAllWithPagingAsync(currentPage, pageSize);
@@ -109,7 +110,7 @@ namespace SmokeQuit.APIServices.BE.LocDPX.Controllers
 
         // GET: api/CoachLocDpx/email/{email}
         [HttpGet("email/{email}")]
-        [Authorize(Roles = "1,2")]
+    
         public async Task<IActionResult> GetByEmail(string email)
         {
             var coach = await _service.GetByEmailAsync(email);
