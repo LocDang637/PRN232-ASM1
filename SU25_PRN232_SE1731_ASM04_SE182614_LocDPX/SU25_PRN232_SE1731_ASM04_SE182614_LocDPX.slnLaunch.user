@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "SmokeQuit.SoapAPIServices.LocDPX\\SmokeQuit.SoapAPIServices.LocDPX.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "SmokeQuit.SoapClients.ConsoleApp.LocDpx\\SmokeQuit.SoapClients.ConsoleApp.LocDpx.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
