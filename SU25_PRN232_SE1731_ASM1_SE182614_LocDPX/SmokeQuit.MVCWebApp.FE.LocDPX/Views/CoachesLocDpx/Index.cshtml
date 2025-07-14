@@ -1,8 +1,4 @@
-﻿@using X.PagedList
-@using X.PagedList.Mvc.Core
-@model IPagedList<SmokeQuit.Repositories.LocDPX.Models.CoachesLocDpx>
-
-@{
+﻿@{
     ViewData["Title"] = "Coaches Management";
 }
 
@@ -12,31 +8,39 @@
     <a asp-action="Create" class="btn btn-primary">Add New Coach</a>
 </p>
 
-<form asp-action="Index" method="get">
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <div class="form-group">
-                <label class="control-label">Full Name</label>
-                <input type="text" id="fullName" name="fullName" class="form-control" placeholder="Search by name..." />
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label class="control-label">Email</label>
-                <input type="text" id="email" name="email" class="form-control" placeholder="Search by email..." />
-            </div>
-        </div>
-        <div class="col-md-4 mt-4">
-            <div class="form-group">
-                <input type="submit" value="Search" class="btn btn-success" />
-                <a asp-action="Index" class="btn btn-secondary">Clear</a>
-            </div>
+<!-- Search Form -->
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="form-group">
+            <label class="control-label">Full Name</label>
+            <input type="text" id="searchFullName" class="form-control" placeholder="Search by name..." />
         </div>
     </div>
-</form>
+    <div class="col-md-4">
+        <div class="form-group">
+            <label class="control-label">Email</label>
+            <input type="text" id="searchEmail" class="form-control" placeholder="Search by email..." />
+        </div>
+    </div>
+    <div class="col-md-4 mt-4">
+        <div class="form-group">
+            <button type="button" id="searchBtn" class="btn btn-success">Search</button>
+            <button type="button" id="clearBtn" class="btn btn-secondary">Clear</button>
+        </div>
+    </div>
+</div>
 
+<!-- Loading indicator -->
+<div id="loadingIndicator" class="text-center" style="display: none;">
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p>Loading coaches...</p>
+</div>
+
+<!-- Coaches table -->
 <div class="table-responsive">
-    <table class="table table-striped">
+    <table class="table table-striped" id="coachesTable">
         <thead>
             <tr>
                 <th>Full Name</th>
@@ -47,57 +51,183 @@
                 <th>Actions</th>
             </tr>
         </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>@item.FullName</td>
-                    <td>
-                        <a href="mailto:@item.Email">@item.Email</a>
-                    </td>
-                    <td>@item.PhoneNumber</td>
-                    <td>
-                        @if (!string.IsNullOrEmpty(item.Bio) && item.Bio.Length > 50)
-                        {
-                            @($"{item.Bio.Substring(0, 50)}...")
-                        }
-                        else
-                        {
-                            @item.Bio
-                        }
-                    </td>
-                    <td>@item.CreatedAt?.ToString("MM/dd/yyyy")</td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@item.CoachesLocDpxid" class="btn btn-sm btn-warning">Edit</a>
-                        <a asp-action="Details" asp-route-id="@item.CoachesLocDpxid" class="btn btn-sm btn-info">Details</a>
-                        <a asp-action="Delete" asp-route-id="@item.CoachesLocDpxid" class="btn btn-sm btn-danger">Delete</a>
-                    </td>
-                </tr>
-            }
+        <tbody id="coachesTableBody">
+            <!-- Data will be loaded via AJAX -->
         </tbody>
     </table>
 </div>
 
-@if (!Model.Any())
-{
-    <div class="alert alert-info text-center">
-        <h4>No coaches found</h4>
-        <p>There are no coaches matching your search criteria.</p>
-    </div>
-}
+<!-- No results message -->
+<div id="noResultsMessage" class="alert alert-info text-center" style="display: none;">
+    <h4>No coaches found</h4>
+    <p>There are no coaches matching your search criteria.</p>
+</div>
 
 <!-- Pagination -->
-@Html.PagedListPager(
-Model,
-page => Url.Action("Index", "CoachesLocDpx", new { pageNumber = page }),
-    new PagedListRenderOptions
-    {
-        DisplayLinkToFirstPage = PagedListDisplayMode.Always,
-        DisplayLinkToLastPage = PagedListDisplayMode.Always,
-        MaximumPageNumbersToDisplay = 5,
-        ContainerDivClasses = new[] { "d-flex", "justify-content-center" },
-        PageClasses = new[] { "page-link" },
-        ActiveLiElementClass = "active",
-        LiElementClasses = new[] { "page-item" }
-    }
-)
+<div id="paginationContainer" class="d-flex justify-content-center">
+    <!-- Pagination will be generated here -->
+</div>
+
+@section Scripts {
+    <script>
+        let currentPage = 1;
+        let pageSize = 10;
+        let currentSearchData = { fullName: '', email: '' };
+
+        $(document).ready(function() {
+            loadCoaches();
+
+            // Search button click
+            $('#searchBtn').click(function() {
+                currentPage = 1;
+                currentSearchData.fullName = $('#searchFullName').val();
+                currentSearchData.email = $('#searchEmail').val();
+                loadCoaches();
+            });
+
+            // Clear button click
+            $('#clearBtn').click(function() {
+                $('#searchFullName').val('');
+                $('#searchEmail').val('');
+                currentPage = 1;
+                currentSearchData = { fullName: '', email: '' };
+                loadCoaches();
+            });
+
+            // Enter key in search fields
+            $('#searchFullName, #searchEmail').keypress(function(e) {
+                if (e.which == 13) {
+                    $('#searchBtn').click();
+                }
+            });
+        });
+
+        function loadCoaches() {
+            showLoading(true);
+
+            const searchRequest = {
+                fullName: currentSearchData.fullName,
+                email: currentSearchData.email,
+                currentPage: currentPage,
+                pageSize: pageSize
+            };
+
+            $.ajax({
+                url: 'https://localhost:7260/api/CoachLocDpx/Search',
+                type: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + getCookie('TokenString'),
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify(searchRequest),
+                success: function(response) {
+                    displayCoaches(response);
+                    generatePagination(response);
+                    showLoading(false);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading coaches:', error);
+                    showError('Error loading coaches. Please try again.');
+                    showLoading(false);
+                }
+            });
+        }
+
+        function displayCoaches(data) {
+            const tbody = $('#coachesTableBody');
+            tbody.empty();
+
+            if (data.items && data.items.length > 0) {
+                $('#coachesTable').show();
+                $('#noResultsMessage').hide();
+
+                data.items.forEach(function(coach) {
+                    const row = '<tr>' +
+                        '<td>' + (coach.fullName || '') + '</td>' +
+                        '<td><a href="mailto:' + (coach.email || '') + '">' + (coach.email || '') + '</a></td>' +
+                        '<td>' + (coach.phoneNumber || '') + '</td>' +
+                        '<td>' + truncateText(coach.bio || '', 50) + '</td>' +
+                        '<td>' + formatDate(coach.createdAt) + '</td>' +
+                        '<td>' +
+                            '<a href="/CoachesLocDpx/Edit/' + coach.coachesLocDpxid + '" class="btn btn-sm btn-warning">Edit</a> ' +
+                            '<a href="/CoachesLocDpx/Details/' + coach.coachesLocDpxid + '" class="btn btn-sm btn-info">Details</a> ' +
+                            '<a href="/CoachesLocDpx/Delete/' + coach.coachesLocDpxid + '" class="btn btn-sm btn-danger">Delete</a>' +
+                        '</td>' +
+                        '</tr>';
+                    tbody.append(row);
+                });
+            } else {
+                $('#coachesTable').hide();
+                $('#noResultsMessage').show();
+            }
+        }
+
+        function generatePagination(data) {
+            const container = $('#paginationContainer');
+            container.empty();
+
+            if (data.totalPages <= 1) return;
+
+            const pagination = $('<nav aria-label="Coaches pagination"><ul class="pagination"></ul></nav>');
+            const ul = pagination.find('ul');
+
+            // Previous button
+            if (data.currentPage > 1) {
+                ul.append('<li class="page-item"><a class="page-link" href="#" onclick="changePage(' + (data.currentPage - 1) + ')">Previous</a></li>');
+            }
+
+            // Page numbers
+            const startPage = Math.max(1, data.currentPage - 2);
+            const endPage = Math.min(data.totalPages, data.currentPage + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                const activeClass = i === data.currentPage ? 'active' : '';
+                ul.append('<li class="page-item ' + activeClass + '"><a class="page-link" href="#" onclick="changePage(' + i + ')">' + i + '</a></li>');
+            }
+
+            // Next button
+            if (data.currentPage < data.totalPages) {
+                ul.append('<li class="page-item"><a class="page-link" href="#" onclick="changePage(' + (data.currentPage + 1) + ')">Next</a></li>');
+            }
+
+            container.append(pagination);
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            loadCoaches();
+        }
+
+        function showLoading(show) {
+            if (show) {
+                $('#loadingIndicator').show();
+                $('#coachesTable').hide();
+                $('#noResultsMessage').hide();
+            } else {
+                $('#loadingIndicator').hide();
+            }
+        }
+
+        function showError(message) {
+            alert(message); // Simple error display
+        }
+
+        function truncateText(text, length) {
+            if (!text) return '';
+            return text.length > length ? text.substring(0, length) + '...' : text;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US');
+        }
+
+        function getCookie(name) {
+            const value = '; ' + document.cookie;
+            const parts = value.split('; ' + name + '=');
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return '';
+        }
+    </script>
+}

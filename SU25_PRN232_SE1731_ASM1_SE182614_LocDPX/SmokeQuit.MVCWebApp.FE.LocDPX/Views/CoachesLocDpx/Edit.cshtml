@@ -1,53 +1,247 @@
-﻿@model SmokeQuit.Repositories.LocDPX.Models.CoachesLocDpx
-
-@{
+﻿@{
     ViewData["Title"] = "Edit Coach";
+    var coachId = ViewBag.CoachId;
 }
 
 <h1>Edit Coach</h1>
 
+<!-- Loading indicator for initial data load -->
+<div id="initialLoadingIndicator" class="text-center">
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p>Loading coach data...</p>
+</div>
+
 <hr />
-<div class="row">
+<div class="row" id="editFormContainer" style="display: none;">
     <div class="col-md-6">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="CoachesLocDpxid" />
-            <input type="hidden" asp-for="CreatedAt" />
+        <form id="editCoachForm">
+            <div id="validationSummary" class="text-danger" style="display: none;"></div>
+
+            <input type="hidden" id="CoachId" value="@coachId" />
+            <input type="hidden" id="CreatedAt" />
 
             <div class="form-group mb-3">
-                <label asp-for="FullName" class="control-label">Full Name</label>
-                <input asp-for="FullName" class="form-control" />
-                <span asp-validation-for="FullName" class="text-danger"></span>
+                <label for="FullName" class="control-label">Full Name</label>
+                <input id="FullName" name="FullName" class="form-control" required />
+                <span id="FullName-error" class="text-danger"></span>
             </div>
 
             <div class="form-group mb-3">
-                <label asp-for="Email" class="control-label">Email</label>
-                <input asp-for="Email" class="form-control" type="email" />
-                <span asp-validation-for="Email" class="text-danger"></span>
+                <label for="Email" class="control-label">Email</label>
+                <input id="Email" name="Email" class="form-control" type="email" required />
+                <span id="Email-error" class="text-danger"></span>
             </div>
 
             <div class="form-group mb-3">
-                <label asp-for="PhoneNumber" class="control-label">Phone Number</label>
-                <input asp-for="PhoneNumber" class="form-control" />
-                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                <label for="PhoneNumber" class="control-label">Phone Number</label>
+                <input id="PhoneNumber" name="PhoneNumber" class="form-control" />
+                <span id="PhoneNumber-error" class="text-danger"></span>
             </div>
 
             <div class="form-group mb-3">
-                <label asp-for="Bio" class="control-label">Bio</label>
-                <textarea asp-for="Bio" class="form-control" rows="4"></textarea>
-                <span asp-validation-for="Bio" class="text-danger"></span>
+                <label for="Bio" class="control-label">Bio</label>
+                <textarea id="Bio" name="Bio" class="form-control" rows="4"></textarea>
+                <span id="Bio-error" class="text-danger"></span>
             </div>
 
             <div class="form-group">
-                <input type="submit" value="Save Changes" class="btn btn-primary" />
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <span id="submitSpinner" class="spinner-border spinner-border-sm" style="display: none;" role="status" aria-hidden="true"></span>
+                    Save Changes
+                </button>
                 <a asp-action="Index" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
     </div>
 </div>
 
+<!-- Error container for initial load -->
+<div id="loadErrorContainer" class="alert alert-danger" style="display: none;">
+    <h4>Error Loading Coach</h4>
+    <p id="loadErrorMessage"></p>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>
+
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <script>
+        const coachId = @coachId;
+
+        $(document).ready(function() {
+            loadCoachData();
+
+            $('#editCoachForm').submit(function(e) {
+                e.preventDefault();
+                clearErrors();
+
+                const formData = {
+                    coachesLocDpxid: parseInt($('#CoachId').val()),
+                    fullName: $('#FullName').val(),
+                    email: $('#Email').val(),
+                    phoneNumber: $('#PhoneNumber').val(),
+                    bio: $('#Bio').val(),
+                    createdAt: $('#CreatedAt').val()
+                };
+
+                // Simple client-side validation (no email regex)
+                if (!validateForm(formData)) {
+                    return;
+                }
+
+                setLoading(true);
+
+                $.ajax({
+                    url: 'https://localhost:7260/api/CoachLocDpx/' + coachId,
+                    type: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + getCookie('TokenString'),
+                        'Content-Type': 'application/json'
+                    },
+                    data: JSON.stringify(formData),
+                    success: function(response) {
+                        setLoading(false);
+                        showSuccess('Coach updated successfully!');
+                        setTimeout(function() {
+                            window.location.href = '/CoachesLocDpx';
+                        }, 1500);
+                    },
+                    error: function(xhr, status, error) {
+                        setLoading(false);
+                        handleError(xhr);
+                    }
+                });
+            });
+        });
+
+        function loadCoachData() {
+            $.ajax({
+                url: 'https://localhost:7260/api/CoachLocDpx/' + coachId,
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + getCookie('TokenString')
+                },
+                success: function(coach) {
+                    populateForm(coach);
+                    $('#initialLoadingIndicator').hide();
+                    $('#editFormContainer').show();
+                },
+                error: function(xhr, status, error) {
+                    $('#initialLoadingIndicator').hide();
+                    $('#loadErrorMessage').text('Coach not found or unable to load data.');
+                    $('#loadErrorContainer').show();
+                }
+            });
+        }
+
+        function populateForm(coach) {
+            $('#FullName').val(coach.fullName || '');
+            $('#Email').val(coach.email || '');
+            $('#PhoneNumber').val(coach.phoneNumber || '');
+            $('#Bio').val(coach.bio || '');
+            $('#CreatedAt').val(coach.createdAt || '');
+        }
+
+        function validateForm(data) {
+            let isValid = true;
+
+            // Only validate required fields and length - NO EMAIL FORMAT CHECK
+            if (!data.fullName || data.fullName.trim().length === 0) {
+                showFieldError('FullName', 'Full Name is required');
+                isValid = false;
+            } else if (data.fullName.length > 100) {
+                showFieldError('FullName', 'Full Name cannot exceed 100 characters');
+                isValid = false;
+            }
+
+            // Email - only check if required and length (server will validate format)
+            if (!data.email || data.email.trim().length === 0) {
+                showFieldError('Email', 'Email is required');
+                isValid = false;
+            } else if (data.email.length > 100) {
+                showFieldError('Email', 'Email cannot exceed 100 characters');
+                isValid = false;
+            }
+
+            // Phone Number - only length validation
+            if (data.phoneNumber && data.phoneNumber.length > 20) {
+                showFieldError('PhoneNumber', 'Phone number cannot exceed 20 characters');
+                isValid = false;
+            }
+
+            // Bio - only length validation
+            if (data.bio && data.bio.length > 500) {
+                showFieldError('Bio', 'Bio cannot exceed 500 characters');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function showFieldError(fieldName, message) {
+            document.getElementById(fieldName + '-error').textContent = message;
+        }
+
+        function clearErrors() {
+            const errorElements = document.querySelectorAll('.text-danger');
+            errorElements.forEach(function(el) {
+                el.textContent = '';
+            });
+            document.getElementById('validationSummary').style.display = 'none';
+        }
+
+        function setLoading(loading) {
+            const submitBtn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('submitSpinner');
+
+            if (loading) {
+                submitBtn.disabled = true;
+                spinner.style.display = 'inline-block';
+            } else {
+                submitBtn.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        function handleError(xhr) {
+            if (xhr.status === 409) {
+                showFieldError('Email', 'A coach with this email already exists.');
+            } else if (xhr.status === 400) {
+                // Server validation errors (including email format from data annotations)
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.errors) {
+                        for (const field in response.errors) {
+                            showFieldError(field, response.errors[field][0]);
+                        }
+                    } else {
+                        showError('Invalid data submitted. Please check your input.');
+                    }
+                } catch (e) {
+                    showError('Invalid data submitted. Please check your input.');
+                }
+            } else if (xhr.status === 404) {
+                showError('Coach not found.');
+            } else {
+                showError('An error occurred while updating the coach. Please try again.');
+            }
+        }
+
+        function showSuccess(message) {
+            alert(message);
+        }
+
+        function showError(message) {
+            const summaryElement = document.getElementById('validationSummary');
+            summaryElement.textContent = message;
+            summaryElement.style.display = 'block';
+        }
+
+        function getCookie(name) {
+            const value = '; ' + document.cookie;
+            const parts = value.split('; ' + name + '=');
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return '';
+        }
+    </script>
 }

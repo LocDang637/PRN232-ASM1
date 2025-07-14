@@ -1,33 +1,114 @@
-﻿@model SmokeQuit.Repositories.LocDPX.Models.CoachesLocDpx
-
-@{
+﻿@{
     ViewData["Title"] = "Coach Details";
+    var coachId = ViewBag.CoachId;
 }
 
 <h1>Coach Details</h1>
 
-<div>
+<!-- Loading indicator -->
+<div id="loadingIndicator" class="text-center">
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p>Loading coach details...</p>
+</div>
+
+<!-- Coach details container -->
+<div id="detailsContainer" style="display: none;">
     <hr />
     <dl class="row">
         <dt class="col-sm-3">Full Name</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(model => model.FullName)</dd>
+        <dd class="col-sm-9" id="fullName"></dd>
 
         <dt class="col-sm-3">Email</dt>
-        <dd class="col-sm-9">
-            <a href="mailto:@Model.Email">@Html.DisplayFor(model => model.Email)</a>
-        </dd>
+        <dd class="col-sm-9" id="email"></dd>
 
         <dt class="col-sm-3">Phone Number</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(model => model.PhoneNumber)</dd>
+        <dd class="col-sm-9" id="phoneNumber"></dd>
 
         <dt class="col-sm-3">Bio</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(model => model.Bio)</dd>
+        <dd class="col-sm-9" id="bio"></dd>
 
         <dt class="col-sm-3">Created At</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(model => model.CreatedAt)</dd>
+        <dd class="col-sm-9" id="createdAt"></dd>
     </dl>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.CoachesLocDpxid" class="btn btn-warning">Edit</a>
+
+<!-- Error container -->
+<div id="errorContainer" class="alert alert-danger" style="display: none;">
+    <h4>Error Loading Coach Details</h4>
+    <p id="errorMessage"></p>
+</div>
+
+<!-- Action buttons -->
+<div id="actionButtons" style="display: none;">
+    <a href="/CoachesLocDpx/Edit/@coachId" class="btn btn-warning">Edit</a>
     <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>
+
+@section Scripts {
+    <script>
+        const coachId = @coachId;
+
+        $(document).ready(function() {
+            loadCoachDetails();
+        });
+
+        function loadCoachDetails() {
+            $.ajax({
+                url: 'https://localhost:7260/api/CoachLocDpx/' + coachId,
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + getCookie('TokenString')
+                },
+                success: function(coach) {
+                    displayCoachDetails(coach);
+                    $('#loadingIndicator').hide();
+                    $('#detailsContainer').show();
+                    $('#actionButtons').show();
+                },
+                error: function(xhr, status, error) {
+                    $('#loadingIndicator').hide();
+                    if (xhr.status === 404) {
+                        $('#errorMessage').text('Coach not found.');
+                    } else {
+                        $('#errorMessage').text('Unable to load coach details. Please try again.');
+                    }
+                    $('#errorContainer').show();
+                }
+            });
+        }
+
+        function displayCoachDetails(coach) {
+            // Display coach information without any validation
+            document.getElementById('fullName').textContent = coach.fullName || 'N/A';
+
+            // Email with mailto link
+            const emailElement = document.getElementById('email');
+            if (coach.email) {
+                emailElement.innerHTML = '<a href="mailto:' + coach.email + '">' + coach.email + '</a>';
+            } else {
+                emailElement.textContent = 'N/A';
+            }
+
+            document.getElementById('phoneNumber').textContent = coach.phoneNumber || 'N/A';
+            document.getElementById('bio').textContent = coach.bio || 'N/A';
+
+            // Format and display created date
+            const createdAtElement = document.getElementById('createdAt');
+            if (coach.createdAt) {
+                const date = new Date(coach.createdAt);
+                createdAtElement.textContent = date.toLocaleString();
+            } else {
+                createdAtElement.textContent = 'N/A';
+            }
+        }
+
+        function getCookie(name) {
+            const value = '; ' + document.cookie;
+            const parts = value.split('; ' + name + '=');
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return '';
+        }
+    </script>
+}
