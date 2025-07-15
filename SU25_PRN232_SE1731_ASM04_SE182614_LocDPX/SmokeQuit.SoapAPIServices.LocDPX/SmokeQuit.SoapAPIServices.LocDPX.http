@@ -1,6 +1,0 @@
-@SmokeQuit.SoapAPIServices.LocDPX_HostAddress = http://localhost:5268
-
-GET {{SmokeQuit.SoapAPIServices.LocDPX_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

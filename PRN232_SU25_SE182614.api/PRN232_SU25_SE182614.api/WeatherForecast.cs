@@ -1,4 +1,4 @@
-namespace SmokeQuit.SoapAPIServices.LocDPX
+namespace PRN232_SU25_SE182614.api
 {
     public class WeatherForecast
     {

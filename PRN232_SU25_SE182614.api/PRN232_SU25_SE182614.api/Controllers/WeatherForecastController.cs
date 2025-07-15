@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace SmokeQuit.SoapAPIServices.LocDPX.Controllers
+namespace PRN232_SU25_SE182614.api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
